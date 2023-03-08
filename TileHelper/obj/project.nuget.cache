@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "4MQosCW7tJrULU8oGPobOMtUYRwwHrUB+iavUo7w1TOhbjLwe0CRSBtYxwDVaC6no6skWQL7X0999DSYxOokjA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\TileHelper.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Dawn\\.nuget\\packages\\csfml\\2.5.0\\csfml.2.5.0.nupkg.sha512",
+    "C:\\Users\\Dawn\\.nuget\\packages\\sfml.audio\\2.5.0\\sfml.audio.2.5.0.nupkg.sha512",
+    "C:\\Users\\Dawn\\.nuget\\packages\\sfml.graphics\\2.5.0\\sfml.graphics.2.5.0.nupkg.sha512",
+    "C:\\Users\\Dawn\\.nuget\\packages\\sfml.net\\2.5.0\\sfml.net.2.5.0.nupkg.sha512",
+    "C:\\Users\\Dawn\\.nuget\\packages\\sfml.system\\2.5.0\\sfml.system.2.5.0.nupkg.sha512",
+    "C:\\Users\\Dawn\\.nuget\\packages\\sfml.window\\2.5.0\\sfml.window.2.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
