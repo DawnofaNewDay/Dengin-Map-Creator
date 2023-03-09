@@ -1,7 +1,7 @@
+using System.Reflection;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Diagnostics;
 using Color = SFML.Graphics.Color;
 using Font = SFML.Graphics.Font;
 using Text = SFML.Graphics.Text;
@@ -11,7 +11,7 @@ namespace TileHelper;
 public static class Game
 {
     public static uint TileSize = 16;
-    public static float Scale = 1.5f;
+    public static float Scale = 1f;
     public static uint TileSizePx => (uint)(TileSize * Scale);
     public static Sprite Tmap => new(new Texture("resources/Tmap.png")) 
     { 
@@ -26,7 +26,7 @@ public static class Game
 
     public static RenderWindow PickerWin;
     public static RenderWindow MapWin;
-    public static uint FrameRate = 20;
+    public static uint FrameRate = 60;
 
     private static RectangleShape _pickerCursor = new(new Vector2f(TileSizePx, TileSizePx))
     {
@@ -42,6 +42,9 @@ public static class Game
         OutlineThickness = 1 * Scale,
         FillColor = Color.Transparent
     };
+    private static bool selecting;
+    private static Vector2i _startPos;
+    private static Vector2i _endPos;
 
     private static Text _text = new("0", new Font("resources/font.ttf"), TileSizePx)
     {
@@ -86,31 +89,49 @@ public static class Game
 
         MapWin.SetFramerateLimit(FrameRate);
         MapWin.Closed += (_, _) => PickerWin.Close();
-        MapWin.MouseButtonPressed += (_, e) =>
-        {
-            Vector2i tile = Utility.ToTilePos(new Vector2f(e.X, e.Y));
-            if (e.Button == Mouse.Button.Left)                
-                Map[tile.Y, tile.X] = SelectedTile;
-            else if (e.Button == Mouse.Button.Right)
-                Map[tile.Y, tile.X] = 0;
-        };
-        MapWin.KeyPressed += async (_, e) =>
-        {
-            if (e.Code == Keyboard.Key.S) Debug.WriteLine(Map);
-                //await File.WriteAllLinesAsync("Map.txt", Map.ToString());
-        };
 
         Form form = new Form();
         form.Text = "Dengin Map Creator";
         form.BackColor = System.Drawing.Color.DarkGray;
-        form.MinimumSize = form.MaximumSize = new Size(PickerWinSize.X + MapWinSize.X, MapWinSize.Y > PickerWinSize.Y ? MapWinSize.Y : PickerWinSize.Y);
-        form.MinimumSize = form.MaximumSize += form.Size - form.ClientSize;
+        form.MinimumSize = new Size(PickerWinSize.X + MapWinSize.X, MapWinSize.Y > PickerWinSize.Y ? MapWinSize.Y : PickerWinSize.Y);
+        form.MinimumSize += form.Size - form.ClientSize;
         form.FormBorderStyle = FormBorderStyle.FixedSingle;
         form.MaximizeBox = false;
         form.Show();
 
+        ToolStripContainer container = new();
+        ToolStrip file = new()
+        {
+            Name = "File",
+            Text = "File"
+        };
+
+        file.Items.Add("Save");
+        file.ItemClicked += async (_, e) =>
+        {
+            if (e.ClickedItem == file.Items[0])
+                await File.WriteAllTextAsync("Map.txt", Utility.MapToString(Map));
+        };
+        container.TopToolStripPanel.Controls.Add(file);
+        container.Top = PickerWinSize.Y;
+        container.Size = new Size(PickerWinSize.X, (int)(30 * Scale));
+        form.Controls.Add(container);
+
+        Button button = new()
+        {
+            FlatStyle = FlatStyle.Flat,
+            FlatAppearance = { BorderSize = 0 },
+            UseVisualStyleBackColor = true,
+            Text = "Save",
+            Size = new Size((int)(TileSizePx * 2), (int)(TileSizePx)),
+            Location = new Point(MapWinSize.X / 2 - (int)TileSizePx, MapWinSize.Y + (int)TileSizePx),
+            Font = new System.Drawing.Font("Segoe UI", 9.0F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0))),
+            TabIndex = 3
+        };
+
         form.Controls.Add(pickerSurface);
         form.Controls.Add(mapSurface);
+        form.Controls.Add(button);
 
         while (form.Visible) Loop();
         PickerWin.Close();
@@ -122,6 +143,44 @@ public static class Game
         GC.Collect();
         Application.DoEvents();
         PickerWin.DispatchEvents();
+
+        Vector2i tile = Utility.ToTilePos(new Vector2f(Mouse.GetPosition(MapWin).X, Mouse.GetPosition(MapWin).Y));
+        if (tile.X >= 0 && tile.Y >= 0 && tile.X < MapSize.X && tile.Y < MapSize.Y)
+        {
+            if (Mouse.IsButtonPressed(Mouse.Button.Middle))
+            {
+                if (selecting == false)
+                {
+                    _startPos = tile;
+                }
+                else
+                {
+                    _endPos = tile;
+                }
+                selecting = true;
+            }
+            else
+            {
+                if (selecting)
+                {
+                    for (int i = _startPos.X; i <= _endPos.X; i++)
+                    {
+                        for (int j = _startPos.Y; j <= _endPos.Y; j++)
+                        {
+                            Map[j, i] = SelectedTile;
+                        }
+                    }
+                }
+                selecting = false;
+            }
+            if (Mouse.IsButtonPressed(Mouse.Button.Left) && Keyboard.IsKeyPressed(Keyboard.Key.LShift))
+                Map[tile.Y, tile.X] = Utility.RandomGrassTile();
+            else if (Mouse.IsButtonPressed(Mouse.Button.Left))            
+                Map[tile.Y, tile.X] = SelectedTile;
+            else if (Mouse.IsButtonPressed(Mouse.Button.Right))
+                Map[tile.Y, tile.X] = 0;
+        }
+
         PickerWin.Clear(Color.Cyan);
         PickerWin.Draw(Tmap);
         PickerWin.Draw(_pickerCursor);
@@ -140,6 +199,10 @@ public static class Game
         newMap.Scale = new Vector2f(Scale, Scale);
         MapWin.Draw(newMap);
         _mapCursor.Position = new Vector2f(Utility.ToTilePos((Vector2f)Mouse.GetPosition(MapWin)).X * TileSizePx, Utility.ToTilePos((Vector2f)Mouse.GetPosition(MapWin)).Y * TileSizePx);
+        
+        if (Keyboard.IsKeyPressed(Keyboard.Key.LShift)) _mapCursor.OutlineColor = Color.Green;
+        else _mapCursor.OutlineColor = Color.Red;
+        
         MapWin.Draw(_mapCursor);
         MapWin.Display();
     }

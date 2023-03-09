@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\TileHelper.csproj": {}
+    "C:\\Users\\Dawn\\Projects\\Dengin-Map-Creator\\TileHelper\\TileHelper.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\TileHelper.csproj": {
+    "C:\\Users\\Dawn\\Projects\\Dengin-Map-Creator\\TileHelper\\TileHelper.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\TileHelper.csproj",
+        "projectUniqueName": "C:\\Users\\Dawn\\Projects\\Dengin-Map-Creator\\TileHelper\\TileHelper.csproj",
         "projectName": "TileHelper",
-        "projectPath": "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\TileHelper.csproj",
+        "projectPath": "C:\\Users\\Dawn\\Projects\\Dengin-Map-Creator\\TileHelper\\TileHelper.csproj",
         "packagesPath": "C:\\Users\\Dawn\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Dawn\\source\\repos\\TileHelper\\TileHelper\\obj\\",
+        "outputPath": "C:\\Users\\Dawn\\Projects\\Dengin-Map-Creator\\TileHelper\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Dawn\\AppData\\Roaming\\NuGet\\NuGet.Config",

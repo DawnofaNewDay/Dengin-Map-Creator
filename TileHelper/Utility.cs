@@ -23,6 +23,26 @@ public static class Utility
 
     public static string MapToString(int[,] Map)
     {
-        return "wait";
+        string output = "{\n";
+
+        for (int y = 0; y < Game.MapSize.Y; y++)
+        {
+            output += "    {";
+            for (int x = 0; x < Game.MapSize.X; x++)
+            {
+                if (x != Game.MapSize.X - 1) output += $"{Map[y,x]}, ";
+                else output += $"{Map[y, x]}";
+            }
+            output += "},\n";
+        }
+        output += "};";
+
+        return output;
+    }
+
+    public static int RandomGrassTile()
+    {
+        int[] grassTiles = { 6, 29, 30, 50 };
+        return grassTiles[new Random().Next(0, grassTiles.Length)];
     }
 }
