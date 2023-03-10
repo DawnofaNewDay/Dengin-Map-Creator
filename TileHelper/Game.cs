@@ -11,7 +11,7 @@ namespace TileHelper;
 public static class Game
 {
     public static uint TileSize = 16;
-    public static float Scale = 1f;
+    public static float Scale = 2f;
     public static uint TileSizePx => (uint)(TileSize * Scale);
     public static Sprite Tmap => new(new Texture("resources/Tmap.png")) 
     { 
@@ -42,14 +42,18 @@ public static class Game
         OutlineThickness = 1 * Scale,
         FillColor = Color.Transparent
     };
-    private static bool selecting;
-    private static Vector2i _startPos;
-    private static Vector2i _endPos;
 
     private static Text _text = new("0", new Font("resources/font.ttf"), TileSizePx)
     {
         FillColor = Color.White
     };
+    
+    private static bool selecting;
+    private static List<int> _selectedTiles = new List<int>();
+    private static Vector2i _selectedSize;
+    private static Vector2i _startPos;
+    private static Vector2i _endPos;
+
 
     public static void Main(string[] args)
     {
@@ -75,6 +79,9 @@ public static class Game
         {
             if (e.Button == Mouse.Button.Left)
             {
+                _pickerCursor.Size = new Vector2f(TileSizePx, TileSizePx);
+                selecting = false;
+                _selectedTiles = new List<int>();
                 Vector2i tile = Utility.ToTilePos(new Vector2f(e.X, e.Y));
                 _pickerCursor.Position = new Vector2f(tile.X * TileSizePx, tile.Y * TileSizePx);
                 _text.DisplayedString = (tile.X + PickerWin.Size.X / TileSizePx * tile.Y).ToString();
@@ -144,36 +151,51 @@ public static class Game
         Application.DoEvents();
         PickerWin.DispatchEvents();
 
-        Vector2i tile = Utility.ToTilePos(new Vector2f(Mouse.GetPosition(MapWin).X, Mouse.GetPosition(MapWin).Y));
-        if (tile.X >= 0 && tile.Y >= 0 && tile.X < MapSize.X && tile.Y < MapSize.Y)
+        Vector2i pickerTile = Utility.ToTilePos(new Vector2f(Mouse.GetPosition(PickerWin).X, Mouse.GetPosition(PickerWin).Y));
+        if (Mouse.IsButtonPressed(Mouse.Button.Middle))
         {
-            if (Mouse.IsButtonPressed(Mouse.Button.Middle))
+            if (selecting == false)
             {
-                if (selecting == false)
-                {
-                    _startPos = tile;
-                }
-                else
-                {
-                    _endPos = tile;
-                }
-                selecting = true;
+                _startPos = pickerTile;
+                _pickerCursor.Position = new Vector2f(_startPos.X * TileSizePx, _startPos.Y * TileSizePx);
             }
             else
             {
-                if (selecting)
+                _endPos = pickerTile;
+                _selectedTiles = new List<int>();
+                for (int y = _startPos.Y; y <= _endPos.Y; y++)
                 {
-                    for (int i = _startPos.X; i <= _endPos.X; i++)
+                    for (int x = _startPos.X; x <= _endPos.X; x++)
                     {
-                        for (int j = _startPos.Y; j <= _endPos.Y; j++)
-                        {
-                            Map[j, i] = SelectedTile;
-                        }
+                        _selectedSize = new Vector2i(x - _startPos.X + 1, y - _startPos.Y + 1);
+                        _selectedTiles.Add((int)(x + PickerWin.Size.X / TileSizePx * y));
                     }
                 }
-                selecting = false;
             }
-            if (Mouse.IsButtonPressed(Mouse.Button.Left) && Keyboard.IsKeyPressed(Keyboard.Key.LShift))
+
+            _pickerCursor.Size = new Vector2f((_endPos.X - _startPos.X + 1) * TileSizePx, (_endPos.Y - _startPos.Y + 1) * TileSizePx);
+            selecting = true;
+        }
+        else
+        {
+            selecting = false;
+        }
+
+        Vector2i tile = Utility.ToTilePos(new Vector2f(Mouse.GetPosition(MapWin).X, Mouse.GetPosition(MapWin).Y));
+        if (tile.X >= 0 && tile.Y >= 0 && tile.X < MapSize.X && tile.Y < MapSize.Y)
+        {
+            if (Mouse.IsButtonPressed(Mouse.Button.Left) && !selecting && _selectedTiles.Count > 0)
+            {
+                for (int y = 0; y < _selectedSize.Y; y++)
+                {
+                    for (int x = 0; x < _selectedSize.X; x++)
+                    {
+                        if (tile.X + x < MapSize.X && tile.Y + y < MapSize.Y)
+                            Map[tile.Y + y, tile.X + x] = _selectedTiles[x + y * _selectedSize.X];
+                    }
+                }
+            }
+            else if (Mouse.IsButtonPressed(Mouse.Button.Left) && Keyboard.IsKeyPressed(Keyboard.Key.LShift))
                 Map[tile.Y, tile.X] = Utility.RandomGrassTile();
             else if (Mouse.IsButtonPressed(Mouse.Button.Left))            
                 Map[tile.Y, tile.X] = SelectedTile;
@@ -202,6 +224,12 @@ public static class Game
         
         if (Keyboard.IsKeyPressed(Keyboard.Key.LShift)) _mapCursor.OutlineColor = Color.Green;
         else _mapCursor.OutlineColor = Color.Red;
+
+        if (_selectedTiles.Count > 0)
+        {
+            _mapCursor.Size = new Vector2f(_selectedSize.X * TileSizePx, _selectedSize.Y * TileSizePx);
+            _mapCursor.OutlineColor = Color.Blue;
+        }
         
         MapWin.Draw(_mapCursor);
         MapWin.Display();

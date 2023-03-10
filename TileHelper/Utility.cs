@@ -23,20 +23,18 @@ public static class Utility
 
     public static string MapToString(int[,] Map)
     {
-        string output = "{\n";
+        string output = $"{Game.MapSize.X}-{Game.MapSize.Y}-";
+        int[] MapArray = new int[Game.MapSize.X * Game.MapSize.Y];
 
         for (int y = 0; y < Game.MapSize.Y; y++)
         {
-            output += "    {";
             for (int x = 0; x < Game.MapSize.X; x++)
             {
-                if (x != Game.MapSize.X - 1) output += $"{Map[y,x]}, ";
-                else output += $"{Map[y, x]}";
+                MapArray[x + y * Game.MapSize.X] = Map[y, x];
             }
-            output += "},\n";
         }
-        output += "};";
 
+        output += string.Join(".", MapArray);
         return output;
     }
 
